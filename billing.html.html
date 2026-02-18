@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arithiva - Media & Marketing</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --brand-primary: #7c3aed; /* Purple */
+            --brand-light: #f3e8ff;
+            --brand-dark: #4c1d95;
+            --bg-app: #f9fafb;
+            --paper-bg: #ffffff;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --quote-color: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-app);
+            margin: 0;
+            padding: 40px;
+            color: var(--text-primary);
+        }
+
+        /* --- DASHBOARD STYLES --- */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2); }
+        .btn-primary { background: var(--brand-primary); color: white; }
+        .btn-secondary { background: white; color: var(--brand-primary); border: 1px solid var(--brand-primary); }
+        .btn-quote { background: white; color: var(--quote-color); border: 1px solid var(--quote-color); }
+        .btn-quote:hover { background: var(--quote-color); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: white; color: var(--danger); border: 1px solid var(--danger); }
+        .btn-danger:hover { background: var(--danger); color: white; }
+        .btn-outline { background: white; border: 1px solid var(--border-color); color: var(--text-primary); }
+
+        #dashboard-container { max-width: 900px; margin: 0 auto; }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--brand-dark) 0%, var(--brand-primary) 100%);
+            padding: 30px 40px;
+            border-radius: 16px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.4);
+            margin-bottom: 30px;
+        }
+        .dashboard-header h2 { margin: 0; font-size: 24px; font-weight: 700; }
+        .dashboard-header small { opacity: 0.8; font-weight: 400; font-size: 14px; }
+        .btn-group { display: flex; gap: 10px; }
+
+        .filter-section {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        /* SPLIT SECTION STYLES */
+        .section-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .section-container {
+            margin-bottom: 40px;
+        }
+        .empty-msg {
+            color: #9ca3af;
+            font-style: italic;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+        }
+
+        .invoice-list { display: grid; gap: 15px; }
+        .invoice-item {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .invoice-item.type-invoice { border-left: 5px solid var(--brand-primary); }
+        .invoice-item.type-quotation { border-left: 5px solid var(--quote-color); }
+        .invoice-item.unpaid-style { background-color: #fff; }
+        .invoice-item.paid-style { background-color: #f0fdf4; }
+        .invoice-item:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transform: scale(1.01); }
+
+        .type-badge { font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-right: 8px; }
+        .badge-inv { background: var(--brand-light); color: var(--brand-primary); }
+        .badge-qtn { background: #ffedd5; color: var(--quote-color); }
+        
+        .delete-icon { background: #fee2e2; color: #ef4444; width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-left: 20px; }
+        
+        /* Toggle Switch */
+        .toggle-container { display: flex; flex-direction: column; align-items: center; margin-right: 20px; }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:focus + .slider { box-shadow: 0 0 1px var(--success); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .status-label { font-size: 11px; font-weight: 700; margin-top: 4px; text-transform: uppercase; }
+        .status-paid { color: var(--success); }
+        .status-unpaid { color: #b91c1c; }
+
+        /* --- EDITOR STYLES --- */
+        #invoice-editor {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            color: var(--text-primary);
+        }
+
+        .editor-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        /* Header Layout */
+        .doc-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .doc-title-input {
+            border: none;
+            border-bottom: 2px dashed var(--brand-primary);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            width: 250px;
+            margin-bottom: 20px;
+        }
+        .doc-title-input:focus { outline: none; border-bottom: 2px solid var(--brand-primary); }
+
+        .meta-group { display: grid; grid-template-columns: 120px 1fr; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .meta-label { font-size: 14px; color: var(--text-secondary); font-weight: 600; }
+        .meta-input { 
+            border: 1px solid var(--border-color); 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            font-family: inherit;
+            color: var(--text-primary);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Business Details Cards */
+        .business-row { display: flex; gap: 20px; margin-bottom: 20px; }
+        .business-box { flex: 1; background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .box-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .box-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 700; }
+        
+        .biz-input { width: 100%; border: none; background: transparent; padding: 4px 0; font-family: inherit; resize: none; }
+        .biz-input:focus { outline: none; background: rgba(255,255,255,0.5); }
+        .biz-name { font-weight: 700; font-size: 16px; color: var(--brand-primary); }
+        .biz-addr { font-size: 14px; color: var(--text-secondary); overflow: hidden; line-height: 1.4; }
+
+        /* --- ITEM LIST DESIGN --- */
+        .items-header {
+            display: flex;
+            background: var(--brand-primary);
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px 8px 0 0;
+            font-weight: 600;
+            font-size: 14px;
+            align-items: center;
+        }
+        .col-item { flex: 3; }
+        .col-qty { flex: 0.8; text-align: center; }
+        .col-rate { flex: 1; text-align: right; }
+        .col-amt { flex: 1; text-align: right; }
+        .col-action { flex: 0.4; text-align: center; display: flex; justify-content: center; }
+
+        .item-row {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-top: none;
+            padding: 0;
+            margin-bottom: 0;
+            position: relative;
+        }
+        .item-row:last-child { border-radius: 0 0 8px 8px; }
+
+        .item-main-inputs {
+            display: flex;
+            padding: 15px;
+            align-items: center;
+        }
+
+        .input-plain { border: 1px solid transparent; background: transparent; font-family: inherit; padding: 5px; width: 100%; box-sizing: border-box; }
+        .input-plain:hover { border-color: var(--border-color); background: #f9fafb; border-radius: 4px; }
+        .input-plain:focus { outline: none; border-color: var(--brand-primary); background: white; border-radius: 4px; }
+
+        .item-name-input { font-weight: 600; font-size: 15px; }
+
+        .btn-delete-row {
+            background: #fee2e2;
+            color: #ef4444;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-delete-row:hover { background: #ef4444; color: white; }
+
+        /* --- RICH TEXT DESCRIPTION BOX --- */
+        .desc-container {
+            padding: 0 15px 15px 15px;
+            padding-right: 50px;
+        }
+        
+        .rich-text-wrapper {
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #fff;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .rich-text-wrapper:focus-within {
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+        }
+
+        .toolbar {
+            background: #f3f4f6;
+            border-bottom: 1px solid var(--border-color);
+            padding: 6px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: #4b5563;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .tool-btn:hover { background: #e5e7eb; color: black; }
+        .tool-btn.active { background: #d1d5db; color: black; }
+
+        .editor-content {
+            padding: 10px;
+            min-height: 40px;
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+            outline: none;
+        }
+        .editor-content ul, .editor-content ol { margin: 5px 0 5px 20px; padding: 0; }
+        .editor-content blockquote { border-left: 3px solid var(--brand-primary); margin: 5px 0; padding-left: 10px; color: #666; font-style: italic; }
+
+        /* --- TERMS SECTION --- */
+        .terms-list { list-style: none; padding: 0; margin: 0; counter-reset: term-counter; }
+        .term-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .term-item::before {
+            counter-increment: term-counter;
+            content: "0" counter(term-counter);
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-top: 8px;
+            margin-right: 10px;
+            width: 20px;
+        }
+        .term-input {
+            flex: 1;
+            border: 1px solid transparent;
+            padding: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            resize: none;
+            font-family: inherit;
+        }
+        .term-input:hover { background: #f9fafb; }
+        .term-input:focus { background: white; border-color: var(--border-color); outline: none; }
+        .term-remove { opacity: 0; margin-left: 5px; margin-top: 8px; color: #ef4444; cursor: pointer; border: none; background: none; }
+        .term-item:hover .term-remove { opacity: 1; }
+
+        /* --- FOOTER --- */
+        .footer-grid { display: flex; justify-content: space-between; margin-top: 20px; }
+        .total-box {
+            text-align: right;
+            width: 300px;
+        }
+        .total-row-display {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .action-bar {
+            position: fixed; bottom: 30px; right: 30px; background: white; padding: 10px;
+            border-radius: 50px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex; gap: 10px; z-index: 100; border: 1px solid var(--border-color);
+        }
+
+        /* =========================================
+           PRINT & PDF SPECIFIC STYLES
+           ========================================= */
+        
+        /* Applied during PDF generation or standard Browser Print */
+        @media print {
+            body { padding: 0; margin: 0; background: white; -webkit-print-color-adjust: exact; }
+            #dashboard-container, .action-bar, .add-btn-area, .toolbar, .col-action, .btn-delete-row, .term-remove, .box-header i { display: none !important; }
+            #invoice-editor { display: block !important; width: 100%; max-width: 100%; margin: 0; }
+            .editor-card { box-shadow: none; border: none; padding: 0; margin-bottom: 30px; }
+            .rich-text-wrapper { border: none; }
+            .input-plain, .term-input, .biz-input, .meta-input, .doc-title-input { border: none !important; background: transparent !important; padding: 0 !important; }
+            .input-plain:hover, .term-input:hover { background: transparent !important; }
+            .business-box { border: 1px solid #eee; background: #fff !important; }
+            .item-row { border: none; border-bottom: 1px solid #eee; }
+            .items-header { border-radius: 4px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .editor-content { padding-left: 0; }
+            /* Hide placeholders in print */
+            ::placeholder { color: transparent; }
+        }
+
+        /* Applied via JS for html2pdf generation */
+        body.pdf-mode {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+            overflow: hidden;
+        }
+
+        .pdf-view { 
+            width: 794px !important; /* Exact A4 width for 96dpi */
+            max-width: 794px !important; 
+            margin: 0 auto !important; 
+            padding: 20px 40px !important;
+            background: white; 
+            box-sizing: border-box;
+        }
+        
+        .pdf-view .editor-card { 
+            box-shadow: none !important; 
+            border: none !important; 
+            padding: 0 !important; 
+            margin-bottom: 20px; 
+        }
+        
+        .pdf-view .biz-input, 
+        .pdf-view .input-plain, 
+        .pdf-view .term-input,
+        .pdf-view .meta-input,
+        .pdf-view .doc-title-input { 
+            background: transparent !important; 
+            border: none !important; 
+            resize: none; 
+            padding: 0 !important;
+        }
+        
+        .pdf-view .toolbar, 
+        .pdf-view .term-remove, 
+        .pdf-view .add-btn-area,
+        .pdf-view .col-action, 
+        .pdf-view .btn-delete-row,
+        .pdf-view .action-bar,
+        .pdf-view .box-header i { 
+            display: none !important; 
+        } 
+        
+        .pdf-view .rich-text-wrapper { border: none; }
+        .pdf-view .editor-content { padding-left: 0; }
+        .pdf-view .business-box { background: white !important; border: 1px solid #eee; }
+        .pdf-view ::placeholder { color: transparent; }
+
+    </style>
+</head>
+<body>
+
+    <div id="dashboard-container">
+        <div class="dashboard-header">
+            <div>
+                <h2>Arithiva Dashboard</h2>
+                <small>Media & Marketing Billing System</small>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-quote" onclick="openCreator('quotation')">
+                    <i class="fas fa-file-invoice"></i> New Quotation
+                </button>
+                <button class="btn btn-secondary" onclick="openCreator('invoice')">
+                    <i class="fas fa-file-invoice-dollar"></i> New Invoice
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <label style="font-weight: 600; color: var(--brand-dark);">Filter:</label>
+            <input type="date" id="filter-date" style="border: 1px solid #ddd; padding: 5px 10px; border-radius: 4px;">
+            <button class="btn btn-primary" onclick="applyFilter()" style="padding: 6px 15px;">Search</button>
+            <button class="btn btn-outline" onclick="resetFilter()" style="padding: 6px 15px;">Clear</button>
+            <button class="btn btn-success" onclick="downloadExcel()" style="padding: 6px 15px; margin-left: auto;">Export Excel</button>
+        </div>
+
+        <div class="section-container">
+            <div class="section-header" style="color: var(--brand-dark);">
+                <i class="fas fa-file-invoice-dollar"></i> Invoices
+            </div>
+            <div id="invoice-list-container" class="invoice-list">
+                </div>
+        </div>
+
+        <div class="section-container">
+            <div class="section-header" style="color: var(--quote-color);">
+                <i class="fas fa-file-invoice"></i> Quotations
+            </div>
+            <div id="quotation-list-container" class="invoice-list">
+                </div>
+        </div>
+    </div>
+
+    <div id="invoice-editor">
+        
+        <div class="editor-card">
+            <div class="doc-header-row">
+                <div>
+                    <input type="text" id="doc-type-title" class="doc-title-input" value="Quotation">
+                    
+                    <div class="meta-group">
+                        <label class="meta-label" id="lbl-no">Quotation No*</label>
+                        <input type="text" id="doc-number" class="meta-input" placeholder="A001">
+                    </div>
+                    <div class="meta-group">
+                        <label class="meta-label">Date*</label>
+                        <input type="date" id="doc-date" class="meta-input">
+                    </div>
+                    <div class="meta-group">
+                        <label class="meta-label">Valid Till</label>
+                        <input type="date" id="doc-due-date" class="meta-input">
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                      <div style="width: 100px; height: 100px; background: #f3f4f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; overflow: hidden;">
+                          <img src="Logo.png"  style="width:100%; height:100%; object-fit: cover;">
+                      </div>
+                      <small style="color: #6b7280; font-size: 10px;"></small>
+                </div>
+            </div>
+
+            <div class="business-row">
+                <div class="business-box">
+                    <div class="box-header">
+                        <span class="box-label">From</span>
+                        <i class="fas fa-pen" style="font-size: 10px; color: var(--brand-primary); cursor: pointer;"></i>
+                    </div>
+                    <input class="biz-input biz-name" value="Arithiva Media and Marketing">
+                    <textarea class="biz-input biz-addr" rows="4">Sulthanpet, Villianur, Pondicherry,
+Puducherry, India - 605110
+arithivadigital@gmail.com
++91 99442 42805</textarea>
+                </div>
+
+                <div class="business-box">
+                    <div class="box-header">
+                        <span class="box-label">For (Client)</span>
+                        <i class="fas fa-pen" style="font-size: 10px; color: var(--brand-primary); cursor: pointer;"></i>
+                    </div>
+                    <input class="biz-input biz-name" id="client-name" placeholder="Client Name">
+                    <textarea class="biz-input biz-addr" id="client-addr" rows="4" placeholder="Client Address"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-card" style="padding: 0; overflow: hidden;">
+            <div class="items-header">
+                <div class="col-item">Item</div>
+                <div class="col-qty">Quantity</div>
+                <div class="col-rate">Rate</div>
+                <div class="col-amt">Amount</div>
+                <div class="col-action"></div> 
+            </div>
+            
+            <div id="items-container">
+            </div>
+
+            <div class="add-btn-area" style="padding: 15px;">
+                <button class="btn btn-outline" onclick="addItemRow()" style="width: 100%; border-style: dashed;">+ Add New Line</button>
+            </div>
+
+            <div style="padding: 0 30px 30px 30px; display: flex; justify-content: flex-end;">
+                <div class="total-box">
+                    <div class="total-row-display">
+                        <span>Total (INR)</span>
+                        <span style="font-weight: 700;">₹<span id="display-total">0.00</span></span>
+                    </div>
+                    <div style="margin-top: 10px; font-size: 12px; color: #666; font-style: italic;" id="amount-in-words">Zero Only</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="editor-card">
+            <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase;">Terms and Conditions</h4>
+            <div id="terms-container" class="terms-list">
+            </div>
+            <div class="add-btn-area" style="margin-top: 10px;">
+                <button class="btn btn-outline" onclick="addTerm()" style="font-size: 11px; padding: 5px 10px;">+ Add New Term</button>
+            </div>
+        </div>
+        
+        <div class="editor-card">
+            <h4 style="margin: 0 0 15px 0; font-size: 14px; text-transform: uppercase;">Payment Terms</h4>
+            <div class="terms-list">
+                <div class="term-item">
+                    <textarea class="term-input" id="payment-note" rows="2">Full payment to be made at the start of each month or project.</textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar" data-html2canvas-ignore="true">
+            <button class="btn btn-danger" onclick="closeEditor()">Back</button>
+            <button class="btn btn-success" onclick="saveDocument()">Save</button>
+            <button class="btn btn-primary" onclick="generatePDF()">Download PDF</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & STATE ---
+        let documents = JSON.parse(localStorage.getItem('arithiva_docs')) || [];
+        let currentId = null;
+        let currentType = 'quotation';
+
+        // --- DASHBOARD LOGIC ---
+        function renderDashboard(data = documents) {
+            const invContainer = document.getElementById('invoice-list-container');
+            const quoteContainer = document.getElementById('quotation-list-container');
+            
+            invContainer.innerHTML = '';
+            quoteContainer.innerHTML = '';
+            
+            if (data.length === 0) {
+                const empty = '<div class="empty-msg">No documents found.</div>';
+                invContainer.innerHTML = empty;
+                quoteContainer.innerHTML = empty;
+                return;
+            }
+
+            // Filter data slice reversed to show newest first
+            const sortedData = data.slice().reverse();
+
+            sortedData.forEach(doc => {
+                const isPaid = doc.isPaid === true;
+                const div = document.createElement('div');
+                div.className = `invoice-item type-${doc.type} ${isPaid ? 'paid-style' : 'unpaid-style'}`;
+                div.onclick = (e) => { if(!e.target.closest('.toggle-container') && !e.target.closest('.delete-icon')) loadDocument(doc.id); };
+
+                const badge = doc.type === 'invoice' 
+                    ? `<span class="type-badge badge-inv">INV</span>` 
+                    : `<span class="type-badge badge-qtn">QTN</span>`;
+
+                const toggleHtml = doc.type === 'invoice' ? `
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" ${isPaid ? 'checked' : ''} onchange="togglePaid(${doc.id}, this)">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-label ${isPaid ? 'status-paid' : 'status-unpaid'}">${isPaid ? 'PAID' : 'UNPAID'}</span>
+                    </div>` : `<div style="margin-right:20px;"><span class="type-badge badge-qtn" style="font-size:12px;">OPEN</span></div>`;
+
+                div.innerHTML = `
+                    <div style="display:flex; align-items:center;">
+                        ${toggleHtml}
+                        <div>
+                            <div style="font-weight: 700; font-size: 16px; color: var(--text-primary);">${doc.clientName || 'Unknown Client'}</div>
+                            <div style="font-size: 13px; color: #666; margin-top: 4px;">
+                                ${badge} ${doc.date} • #${doc.number}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <div style="text-align: right; margin-right: 15px;">
+                            <div style="font-size: 18px; font-weight: 700; color: var(--text-primary);">₹${doc.total}</div>
+                        </div>
+                        <button class="delete-icon" onclick="deleteDoc(${doc.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+
+                // Sort into correct container
+                if(doc.type === 'invoice') {
+                    invContainer.appendChild(div);
+                } else {
+                    quoteContainer.appendChild(div);
+                }
+            });
+
+            // Handle empty states for individual sections
+            if(invContainer.children.length === 0) invContainer.innerHTML = '<div class="empty-msg">No Invoices created yet.</div>';
+            if(quoteContainer.children.length === 0) quoteContainer.innerHTML = '<div class="empty-msg">No Quotations created yet.</div>';
+        }
+
+        function togglePaid(id, checkbox) {
+            const doc = documents.find(d => d.id === id);
+            if(doc) { doc.isPaid = checkbox.checked; saveToLocal(); renderDashboard(); }
+        }
+        function deleteDoc(id) {
+            if(confirm("Delete this document?")) {
+                documents = documents.filter(d => d.id !== id);
+                saveToLocal();
+                renderDashboard();
+            }
+        }
+        function saveToLocal() { localStorage.setItem('arithiva_docs', JSON.stringify(documents)); }
+        function applyFilter() {
+            const date = document.getElementById('filter-date').value;
+            if(!date) return;
+            renderDashboard(documents.filter(d => d.date === date));
+        }
+        function resetFilter() { document.getElementById('filter-date').value = ''; renderDashboard(); }
+
+        // --- EDITOR LOGIC ---
+
+        function openCreator(type) {
+            currentId = null;
+            currentType = type;
+            document.getElementById('dashboard-container').style.display = 'none';
+            document.getElementById('invoice-editor').style.display = 'block';
+            
+            // Set Defaults
+            document.getElementById('doc-type-title').value = type === 'quotation' ? 'Quotation' : 'Invoice';
+            document.getElementById('lbl-no').innerText = type === 'quotation' ? 'Quotation No*' : 'Invoice No*';
+            document.getElementById('doc-number').value = (type === 'quotation' ? 'QTN-' : 'INV-') + Math.floor(Math.random()*10000);
+            document.getElementById('doc-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('client-name').value = '';
+            document.getElementById('client-addr').value = '';
+            
+            // Clear lists
+            document.getElementById('items-container').innerHTML = '';
+            document.getElementById('terms-container').innerHTML = '';
+            
+            addItemRow(); // Add one default item
+            
+            // Default Terms based on type
+            const terms = type === 'quotation' 
+                ? ["Quotation valid for 15 days.", "50% Advance to confirm order.", "Revisions: Up to 2 rounds included."]
+                : ["Goods once sold will not be taken back.", "Subject to Jurisdiction.", "Interest @18% if delayed."];
+            
+            terms.forEach(t => addTerm(t));
+            
+            calculateTotal();
+        }
+
+        function loadDocument(id) {
+            const doc = documents.find(d => d.id === id);
+            if(!doc) return;
+            currentId = id;
+            currentType = doc.type;
+            
+            document.getElementById('dashboard-container').style.display = 'none';
+            document.getElementById('invoice-editor').style.display = 'block';
+            
+            document.getElementById('doc-type-title').value = currentType === 'quotation' ? 'Quotation' : 'Invoice';
+            document.getElementById('doc-number').value = doc.number;
+            document.getElementById('doc-date').value = doc.date;
+            document.getElementById('doc-due-date').value = doc.dueDate;
+            document.getElementById('client-name').value = doc.clientName;
+            document.getElementById('client-addr').value = doc.clientAddr;
+            document.getElementById('payment-note').value = doc.paymentTerms || '';
+
+            // Load Items
+            const container = document.getElementById('items-container');
+            container.innerHTML = '';
+            doc.items.forEach(item => addItemRow(item));
+
+            // Load Terms
+            const termsCont = document.getElementById('terms-container');
+            termsCont.innerHTML = '';
+            if(doc.terms && doc.terms.length > 0) {
+                doc.terms.forEach(t => addTerm(t));
+            } else { addTerm(); }
+
+            calculateTotal();
+        }
+
+        function closeEditor() {
+            document.getElementById('invoice-editor').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'block';
+            renderDashboard();
+        }
+
+        // --- ITEMS ROW GENERATOR ---
+        function addItemRow(data = null) {
+            const container = document.getElementById('items-container');
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'item-row';
+            
+            const descContent = data ? data.desc : '';
+            
+            rowDiv.innerHTML = `
+                <div class="item-main-inputs">
+                    <div class="col-item">
+                        <input type="text" class="input-plain item-name-input" placeholder="Item Name / Service" value="${data ? data.name : ''}">
+                    </div>
+                    <div class="col-qty">
+                        <input type="number" class="input-plain i-qty" value="${data ? data.qty : 1}" oninput="calcRow(this)" style="text-align:center;">
+                    </div>
+                    <div class="col-rate">
+                        <input type="number" class="input-plain i-rate" value="${data ? data.rate : 0}" oninput="calcRow(this)" style="text-align:right;">
+                    </div>
+                    <div class="col-amt" style="text-align: right; padding-top:5px;">
+                        ₹<span class="i-amt">${data ? data.amount : '0.00'}</span>
+                    </div>
+                    <div class="col-action">
+                        <button class="btn-delete-row" onclick="deleteItemRow(this)" title="Remove Item">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="desc-container">
+                    <div class="rich-text-wrapper">
+                        <div class="toolbar" onmousedown="event.preventDefault();">
+                            <button class="tool-btn" onclick="formatDoc(this, 'bold')" title="Bold"><i class="fas fa-bold"></i></button>
+                            <button class="tool-btn" onclick="formatDoc(this, 'italic')" title="Italic"><i class="fas fa-italic"></i></button>
+                            <button class="tool-btn" onclick="formatDoc(this, 'strikeThrough')" title="Strike"><i class="fas fa-strikethrough"></i></button>
+                            <span style="border-right:1px solid #ddd; margin: 0 4px;"></span>
+                            <button class="tool-btn" onclick="formatDoc(this, 'insertUnorderedList')" title="Bullet List"><i class="fas fa-list-ul"></i></button>
+                            <button class="tool-btn" onclick="formatDoc(this, 'insertOrderedList')" title="Number List"><i class="fas fa-list-ol"></i></button>
+                            <span style="border-right:1px solid #ddd; margin: 0 4px;"></span>
+                            <button class="tool-btn" onclick="formatDoc(this, 'insertHorizontalRule')" title="Divider">―</button>
+                        </div>
+                        
+                        <div class="editor-content" contenteditable="true" placeholder="Add description here...">${descContent}</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(rowDiv);
+            if(!data) calcRow(rowDiv.querySelector('.i-qty')); // Init calc
+        }
+
+        function deleteItemRow(btn) {
+            const row = btn.closest('.item-row');
+            row.remove();
+            calculateTotal();
+        }
+
+        // --- TERMS GENERATOR ---
+        function addTerm(text = '') {
+            const container = document.getElementById('terms-container');
+            const div = document.createElement('div');
+            div.className = 'term-item';
+            div.innerHTML = `
+                <textarea class="term-input" rows="1" oninput="autoResize(this)">${text}</textarea>
+                <button class="term-remove" onclick="this.closest('.term-item').remove()"><i class="fas fa-times"></i></button>
+            `;
+            container.appendChild(div);
+            autoResize(div.querySelector('textarea'));
+        }
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        // --- RICH TEXT LOGIC ---
+        function formatDoc(btn, cmd, value=null) {
+            document.execCommand(cmd, false, value);
+            if(cmd === 'bold' || cmd === 'italic' || cmd === 'strikeThrough') {
+                btn.classList.toggle('active');
+            }
+        }
+
+        // --- CALCULATIONS ---
+        function calcRow(input) {
+            const row = input.closest('.item-row');
+            const qty = parseFloat(row.querySelector('.i-qty').value) || 0;
+            const rate = parseFloat(row.querySelector('.i-rate').value) || 0;
+            const amt = qty * rate;
+            row.querySelector('.i-amt').innerText = amt.toFixed(2);
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll('.i-amt').forEach(el => total += parseFloat(el.innerText));
+            document.getElementById('display-total').innerText = total.toFixed(2);
+            document.getElementById('amount-in-words').innerText = numberToWords(Math.round(total));
+        }
+
+        function numberToWords(n) {
+            if (n === 0) return "Zero Only";
+            const units = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"];
+            const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+            
+            let str = "";
+            if (n >= 10000000) { str += numberToWords(Math.floor(n / 10000000)) + " Crore "; n %= 10000000; }
+            if (n >= 100000) { str += numberToWords(Math.floor(n / 100000)) + " Lakh "; n %= 100000; }
+            if (n >= 1000) { str += numberToWords(Math.floor(n / 1000)) + " Thousand "; n %= 1000; }
+            if (n >= 100) { str += numberToWords(Math.floor(n / 100)) + " Hundred "; n %= 100; }
+            if (n > 0) {
+                if (str !== "") str += "and ";
+                if (n < 20) str += units[n];
+                else {
+                    str += tens[Math.floor(n / 10)];
+                    if (n % 10 > 0) str += " " + units[n % 10];
+                }
+            }
+            return str + " Only";
+        }
+
+        // --- SAVING ---
+        function saveDocument() {
+            const items = [];
+            document.querySelectorAll('.item-row').forEach(row => {
+                items.push({
+                    name: row.querySelector('.item-name-input').value,
+                    qty: row.querySelector('.i-qty').value,
+                    rate: row.querySelector('.i-rate').value,
+                    amount: row.querySelector('.i-amt').innerText,
+                    desc: row.querySelector('.editor-content').innerHTML
+                });
+            });
+
+            const terms = [];
+            document.querySelectorAll('.term-item textarea').forEach(t => {
+                if(t.value.trim()) terms.push(t.value);
+            });
+
+            const docData = {
+                id: currentId || Date.now(),
+                type: currentType,
+                number: document.getElementById('doc-number').value,
+                date: document.getElementById('doc-date').value,
+                dueDate: document.getElementById('doc-due-date').value,
+                clientName: document.getElementById('client-name').value,
+                clientAddr: document.getElementById('client-addr').value,
+                paymentTerms: document.getElementById('payment-note').value,
+                total: document.getElementById('display-total').innerText,
+                items: items,
+                terms: terms,
+                isPaid: false 
+            };
+            
+            if(currentId) {
+                const idx = documents.findIndex(d => d.id === currentId);
+                docData.isPaid = documents[idx].isPaid;
+                documents[idx] = docData;
+            } else {
+                documents.push(docData);
+            }
+            
+            saveToLocal();
+            alert("Document Saved!");
+        }
+
+        // --- EXPORT PDF ---
+        function generatePDF() {
+            const element = document.getElementById('invoice-editor');
+            const body = document.body;
+
+            // 1. Enter PDF Mode
+            body.classList.add('pdf-mode');
+            element.classList.add('pdf-view');
+            
+            // 2. Wait a split second for styles to apply before snapping
+            setTimeout(() => {
+                const opt = {
+                    margin:       [0, 0, 0, 0], 
+                    filename:     `${document.getElementById('doc-number').value}.pdf`,
+                    image:        { type: 'jpeg', quality: 1 },
+                    html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                    jsPDF:        { unit: 'px', format: [794, 1123], orientation: 'portrait' } // A4 pixel size
+                };
+
+                html2pdf().set(opt).from(element).save().then(() => {
+                    // 3. Exit PDF Mode
+                    element.classList.remove('pdf-view');
+                    body.classList.remove('pdf-mode');
+                });
+            }, 100);
+        }
+        
+        function downloadExcel() {
+             if (documents.length === 0) { alert("No documents to export."); return; }
+            let csv = "Serial No.,Type,Date,Customer Name,Doc Number,Amount (Rs),Status\n";
+            let grandTotal = 0;
+            documents.forEach((inv, index) => {
+                const amount = parseFloat(inv.total) || 0;
+                grandTotal += amount;
+                const statusStr = inv.type === 'quotation' ? 'Quote' : ((inv.isPaid === true) ? "Paid" : "Unpaid");
+                const typeStr = inv.type === 'quotation' ? 'Quotation' : 'Invoice';
+                csv += `${index + 1},${typeStr},${inv.date},"${inv.clientName}",${inv.number},${amount.toFixed(2)},${statusStr}\n`;
+            });
+            csv += `,,,Total,${grandTotal.toFixed(2)},\n`;
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Billing_Export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Initialize
+        renderDashboard();
+    </script>
+</body>
+</html>
